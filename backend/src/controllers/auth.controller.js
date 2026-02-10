@@ -73,7 +73,7 @@ export const login = async (req,res) => {
 
     try{
         if (!email || !password){
-        res.status(400).json({ message: "All fields are required" })
+        return res.status(400).json({ message: "All fields are required" })
         }
 
         const user = await User.findOne({ email: email})
@@ -93,12 +93,11 @@ export const login = async (req,res) => {
         fullName: user.fullName, 
         email: user.email,
         profilepic: user.profilePic,
-        }) ;
-
+        });
 
     } catch (error) {
         console.error("Error in login controller:", error)
-        res.status(500).json({ message: "Internal Server Error"})
+        return res.status(500).json({ message: "Internal Server Error"})
     }
 }
 
