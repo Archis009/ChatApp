@@ -1,7 +1,8 @@
 import jwt from "jsonwebtoken";
+import {ENV} from "./env.js";
 
 export const generateToken = (userId, res) => {
-    const { JWT_SECRET } = process.env; 
+    const { JWT_SECRET } = ENV; 
     if (!JWT_SECRET) {
         throw new Error("JWT_SECRET is not configured")
     }
@@ -14,7 +15,7 @@ export const generateToken = (userId, res) => {
         maxAge: 7 * 24 * 60 * 60 * 1000, //MS 
         httpOnly : true, // prevent XSS attacks: cross-site
         sameSite: "strict", // CSRF attacks 
-        secure : process.env.NODE_ENV == "production" ? true : false 
+        secure : ENV.NODE_ENV == "production" ? true : false 
     }); 
 
     return token; 
