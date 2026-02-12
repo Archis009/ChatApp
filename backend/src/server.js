@@ -1,6 +1,7 @@
 import express from "express";
 // import dotenv from "dotenv";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 import {ENV} from "./lib/env.js";
 import authRoutes from "./routes/auth.route.js";
 import messageRoutes from "./routes/message.route.js";
@@ -14,8 +15,13 @@ const __dirname = path.resolve();
 
 const PORT = ENV.PORT || 3000;
 
-app.use(express.json()); //req.body 
+app.use(express.json({limit: "5mb"})); //req.body 
 app.use(cookieParser());
+app.use((req, res, next) => {
+    console.log("Cookies received:", req.cookies);
+    next();
+});
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);

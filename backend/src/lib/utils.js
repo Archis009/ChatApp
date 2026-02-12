@@ -11,12 +11,15 @@ export const generateToken = (userId, res) => {
         expiresIn: "7d"
     })
 
-    res.cookie("jwt", token, {
-        maxAge: 7 * 24 * 60 * 60 * 1000, //MS 
-        httpOnly : true, // prevent XSS attacks: cross-site
-        sameSite: "strict", // CSRF attacks 
-        secure : ENV.NODE_ENV == "production" ? true : false 
-    }); 
+    const cookieOptions = {
+        maxAge: 7 * 24 * 60 * 60 * 1000, 
+        httpOnly: true,
+        sameSite: ENV.NODE_ENV === "production" ? "strict" : "lax", 
+        secure: ENV.NODE_ENV !== "development"
+    };
+    console.log("Setting cookie with options:", cookieOptions);
+
+    res.cookie("jwt", token, cookieOptions); 
 
     return token; 
 }
