@@ -21,8 +21,8 @@ app.use((req, res, next) => {
     console.log("Cookies received:", req.cookies);
     next();
 });
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 
+app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
