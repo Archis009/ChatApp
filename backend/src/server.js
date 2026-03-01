@@ -23,6 +23,11 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "Backend is running!" });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
