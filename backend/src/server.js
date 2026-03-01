@@ -23,6 +23,11 @@ app.use((req, res, next) => {
 });
 
 app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+
+app.get("/api/health", (req, res) => {
+    res.status(200).json({ status: "Backend is running!" });
+});
+
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
@@ -35,7 +40,14 @@ if(ENV.NODE_ENV == "production"){
     })
 }
 
-app.listen(PORT, ()=>{
-    console.log(`server is running on port ${PORT}`)
-    connectDB();
-})
+export default app;
+
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    app.listen(PORT, ()=>{
+        console.log(`server is running on port ${PORT}`)
+        connectDB();
+    })
+} else {
+    // connect to DB even if deployed on Vercel
+    connectDB(); 
+}
