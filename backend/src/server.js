@@ -25,6 +25,7 @@ app.use((req, res, next) => {
 const allowedOrigins = [
     ENV.CLIENT_URL,
     "http://localhost:5173",
+    "https://chat-app-lfa8.vercel.app",
 ].filter(Boolean);
 
 app.use(cors({ 
