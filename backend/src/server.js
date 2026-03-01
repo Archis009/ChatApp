@@ -35,7 +35,14 @@ if(ENV.NODE_ENV == "production"){
     })
 }
 
-app.listen(PORT, ()=>{
-    console.log(`server is running on port ${PORT}`)
-    connectDB();
-})
+export default app;
+
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+    app.listen(PORT, ()=>{
+        console.log(`server is running on port ${PORT}`)
+        connectDB();
+    })
+} else {
+    // connect to DB even if deployed on Vercel
+    connectDB(); 
+}
