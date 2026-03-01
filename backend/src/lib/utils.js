@@ -14,7 +14,7 @@ export const generateToken = (userId, res) => {
     const cookieOptions = {
         maxAge: 7 * 24 * 60 * 60 * 1000, 
         httpOnly: true,
-        sameSite: ENV.NODE_ENV === "production" ? "strict" : "lax", 
+        sameSite: ENV.NODE_ENV === "development" ? "strict" : "none", 
         secure: ENV.NODE_ENV !== "development"
     };
     console.log("Setting cookie with options:", cookieOptions);
