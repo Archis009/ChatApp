@@ -38,7 +38,7 @@ export const sendMessage = async (req, res) => {
         const senderId = req.user._id; //my Id 
         const receiverId = req.params.id;
 
-        if (!text || !image){
+        if (!text && !image){
             return res.status(400).json({ message: "Text or Image is required" })
         }
 
@@ -67,7 +67,6 @@ export const sendMessage = async (req, res) => {
         await newMessage.save();
 
         // todo: send message in real time if user is online using socket.io
-
         res.status(201).json(newMessage);
     } catch (error) {
         console.log("Error sending message:", error);
