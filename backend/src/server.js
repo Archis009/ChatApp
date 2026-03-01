@@ -22,7 +22,22 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(cors({ origin: ENV.CLIENT_URL, credentials: true }));
+const allowedOrigins = [
+    ENV.CLIENT_URL,
+    "http://localhost:5173",
+].filter(Boolean);
+
+app.use(cors({ 
+    origin: (origin, callback) => {
+        // allow requests with no origin (like mobile apps or curl)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error("Not allowed by CORS"));
+        }
+    }, 
+    credentials: true 
+}));
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "Backend is running!" });
