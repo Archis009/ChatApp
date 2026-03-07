@@ -13,7 +13,7 @@ export const useChatStore = create((set, get) => ({
   isMessagesLoading: false,
   isSettingsOpen: false,
   previewImage: null,
-  isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
+  isSoundEnabled: localStorage.getItem("isSoundEnabled") !== null ? JSON.parse(localStorage.getItem("isSoundEnabled")) === true : true,
 
   setPreviewImage: (imageUrl) => set({ previewImage: imageUrl }),
 
@@ -145,7 +145,6 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { isSoundEnabled } = get();
 
     const socket = useAuthStore.getState().socket;
     if (!socket) return;
@@ -159,6 +158,7 @@ export const useChatStore = create((set, get) => ({
         set({ messages: [...currentMessages, newMessage] });
       }
 
+      const { isSoundEnabled } = get();
       if (isSoundEnabled) {
         const notificationSound = new Audio("/sounds/notification.mp3");
 
