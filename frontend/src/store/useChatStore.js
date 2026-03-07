@@ -84,6 +84,26 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  clearChat: async (userId) => {
+    try {
+      await axiosInstance.delete(`/messages/clear/${userId}`);
+      set({ messages: [] });
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to clear chat");
+    }
+  },
+
+  deleteMessage: async (messageId) => {
+    try {
+      await axiosInstance.delete(`/messages/${messageId}`);
+      set((state) => ({
+        messages: state.messages.filter((msg) => msg._id !== messageId),
+      }));
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete message");
+    }
+  },
+
   subscribeToMessages: () => {
     const { isSoundEnabled } = get();
 
@@ -109,10 +129,25 @@ export const useChatStore = create((set, get) => ({
       // Refresh chat partners to update the sidebar
       get().getMyChatPartners();
     });
+
+    socket.on("messageDeleted", ({ messageId }) => {
+      set((state) => ({
+        messages: state.messages.filter((msg) => msg._id !== messageId),
+      }));
+    });
+
+    socket.on("chatCleared", ({ clearedBy }) => {
+      const { selectedUser } = get();
+      if (selectedUser && selectedUser._id === clearedBy) {
+        set({ messages: [] });
+      }
+    });
   },
 
   unsubscribeFromMessages: () => {
     const socket = useAuthStore.getState().socket;
     socket.off("newMessage");
+    socket.off("messageDeleted");
+    socket.off("chatCleared");
   },
 }));

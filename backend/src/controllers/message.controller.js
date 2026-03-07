@@ -109,3 +109,55 @@ export const getChatPartners = async (req, res) => {
         res.status(500).json({ message: "Server error" });
     }
 }
+
+export const clearChat = async (req, res) => {
+    try {
+        const myId = req.user._id;
+        const otherUserId = req.params.id;
+
+        await Message.deleteMany({
+            $or: [
+                { senderId: myId, receiverId: otherUserId },
+                { senderId: otherUserId, receiverId: myId }
+            ]
+        });
+
+        const receiverSocketId = getReceiverSocketId(otherUserId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("chatCleared", { clearedBy: myId });
+        }
+
+        res.status(200).json({ message: "Chat cleared successfully" });
+    } catch (error) {
+        console.log("Error clearing chat:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const deleteMessage = async (req, res) => {
+    try {
+        const messageId = req.params.id;
+        const myId = req.user._id;
+
+        const message = await Message.findById(messageId);
+        if (!message) {
+            return res.status(404).json({ message: "Message not found" });
+        }
+
+        if (message.senderId.toString() !== myId.toString()) {
+            return res.status(403).json({ message: "You can only delete your own messages" });
+        }
+
+        await Message.findByIdAndDelete(messageId);
+
+        const receiverSocketId = getReceiverSocketId(message.receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("messageDeleted", { messageId });
+        }
+
+        res.status(200).json({ message: "Message deleted successfully", messageId });
+    } catch (error) {
+        console.log("Error deleting message:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};

@@ -5,6 +5,7 @@ import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
+import { Trash2 } from "lucide-react";
 
 function ChatContainer() {
   const {
@@ -12,6 +13,7 @@ function ChatContainer() {
     getMessagesByUserId,
     messages,
     isMessagesLoading,
+    deleteMessage,
   } = useChatStore();
   
   const { authUser } = useAuthStore();
@@ -49,12 +51,25 @@ function ChatContainer() {
                     <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover" />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
-                  <p className="text-xs mt-1 opacity-75 flex items-center gap-1">
-                    {new Date(msg.createdAt).toLocaleTimeString(undefined, {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </p>
+                  
+                  <div className="flex justify-between items-center gap-3 mt-1">
+                    <p className="text-xs opacity-75 flex items-center gap-1">
+                      {new Date(msg.createdAt).toLocaleTimeString(undefined, {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </p>
+                    
+                    {msg.senderId === authUser._id && (
+                      <button 
+                        onClick={() => deleteMessage(msg._id)}
+                        className="text-xs opacity-50 hover:opacity-100 hover:text-red-400 transition-colors"
+                        title="Delete message"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             ))}

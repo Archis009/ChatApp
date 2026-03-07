@@ -1,10 +1,10 @@
-import { XIcon } from "lucide-react";
+import { XIcon, Trash2 } from "lucide-react";
 import { useChatStore } from "../store/useChatStore";
 import { useEffect } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 
 function ChatHeader() {
-  const { selectedUser, setSelectedUser } = useChatStore();
+  const { selectedUser, setSelectedUser, clearChat } = useChatStore();
   const { onlineUsers } = useAuthStore();
   const isOnline = onlineUsers.includes(selectedUser._id);
 
@@ -37,9 +37,21 @@ function ChatHeader() {
         </div>
       </div>
 
-      <button onClick={() => setSelectedUser(null)}>
-        <XIcon className="w-5 h-5 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer" />
-      </button>
+      <div className="flex items-center gap-4">
+        <button 
+          onClick={() => {
+            if (window.confirm("Are you sure you want to clear this chat? This action cannot be undone.")) {
+              clearChat(selectedUser._id);
+            }
+          }}
+          title="Clear Chat"
+        >
+          <Trash2 className="w-5 h-5 text-slate-400 hover:text-red-500 transition-colors cursor-pointer" />
+        </button>
+        <button onClick={() => setSelectedUser(null)} title="Close Chat">
+          <XIcon className="w-5 h-5 text-slate-400 hover:text-slate-200 transition-colors cursor-pointer" />
+        </button>
+      </div>
     </div>
   );
 }
