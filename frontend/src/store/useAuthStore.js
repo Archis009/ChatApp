@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { axiosInstance } from "../lib/axios";
 import toast from "react-hot-toast";
 import { io } from "socket.io-client";
+import { useChatStore } from "./useChatStore";
 
 const BASE_URL = import.meta.env.VITE_BACKEND_URL;
 
@@ -63,6 +64,7 @@ export const useAuthStore = create((set, get) => ({
       set({ authUser: null });
       toast.success("Logged out successfully");
       get().disconnectSocket();
+      useChatStore.getState().setIsSettingsOpen(false);
     } catch (error) {
       toast.error("Error logging out");
       console.log("Logout error:", error);

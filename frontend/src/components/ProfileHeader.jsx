@@ -1,127 +1,52 @@
-import { useState, useRef } from "react";
-import { LogOutIcon, VolumeOffIcon, Volume2Icon, CheckIcon, XIcon } from "lucide-react";
+import { VolumeOffIcon, Volume2Icon } from "lucide-react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 
 const mouseClickSound = new Audio("/sounds/mouse-click.mp3");
 
 function ProfileHeader() {
-  const { logout, authUser, updateProfile } = useAuthStore();
-  const { isSoundEnabled, toggleSound } = useChatStore();
-  const [selectedImg, setSelectedImg] = useState(null);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [newName, setNewName] = useState(authUser?.fullName || "");
-
-  const fileInputRef = useRef(null);
-
-  const handleNameSave = async () => {
-    if (!newName.trim() || newName === authUser.fullName) {
-      setIsEditingName(false);
-      setNewName(authUser.fullName);
-      return;
-    }
-    await updateProfile({ fullName: newName.trim() });
-    setIsEditingName(false);
-  };
-
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-
-    reader.onloadend = async () => {
-      const base64Image = reader.result;
-      setSelectedImg(base64Image);
-      await updateProfile({ profilePic: base64Image });
-    };
-  };
+  const { authUser } = useAuthStore();
+  const { isSoundEnabled, toggleSound, setIsSettingsOpen } = useChatStore();
 
   return (
     <div className="p-6 border-b border-slate-700/50">
       <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
+        <div 
+          className="flex items-center gap-3 cursor-pointer group hover:bg-slate-800/50 py-1.5 px-2 rounded-lg transition-colors -ml-2"
+          onClick={() => setIsSettingsOpen(true)}
+          title="Open Settings"
+        >
           {/* AVATAR */}
           <div className="avatar online">
-            <button
-              className="size-14 rounded-full overflow-hidden relative group"
-              onClick={() => fileInputRef.current.click()}
-            >
+            <div className="size-12 rounded-full overflow-hidden border border-slate-700 ring-2 ring-transparent group-hover:ring-cyan-500/50 transition-all">
               <img
-                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                src={authUser?.profilePic || "/avatar.png"}
                 alt="User image"
-                className="size-full object-cover"
+                className="size-full object-cover group-hover:scale-105 transition-transform"
               />
-              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-xs">Change</span>
-              </div>
-            </button>
-
-            <input
-              type="file"
-              accept="image/*"
-              ref={fileInputRef}
-              onChange={handleImageUpload}
-              className="hidden"
-            />
+            </div>
           </div>
 
           {/* USERNAME & ONLINE TEXT */}
           <div>
-            {isEditingName ? (
-              <div className="flex items-center gap-2 max-w-[200px]">
-                <input 
-                  type="text" 
-                  value={newName} 
-                  onChange={(e) => setNewName(e.target.value)}
-                  className="input input-sm input-bordered bg-slate-800 text-slate-200 px-2 h-8 w-full"
-                  autoFocus
-                  onKeyDown={(e) => e.key === "Enter" && handleNameSave()}
-                />
-                <button onClick={handleNameSave} className="text-emerald-500 hover:text-emerald-400 p-1">
-                  <CheckIcon className="w-4 h-4" />
-                </button>
-                <button onClick={() => { setIsEditingName(false); setNewName(authUser.fullName); }} className="text-red-500 hover:text-red-400 p-1">
-                  <XIcon className="w-4 h-4" />
-                </button>
-              </div>
-            ) : (
-              <h3 
-                className="text-slate-200 font-medium text-base max-w-[180px] truncate cursor-pointer hover:underline decoration-slate-400 underline-offset-4"
-                onClick={() => {
-                  setNewName(authUser.fullName);
-                  setIsEditingName(true);
-                }}
-                title="Click to rename"
-              >
-                {authUser.fullName}
-              </h3>
-            )}
-
-            <p className="text-slate-400 text-xs">Online</p>
+            <h3 className="text-slate-200 font-medium text-base max-w-[130px] truncate group-hover:text-cyan-400 transition-colors">
+              {authUser?.fullName}
+            </h3>
+            <p className="text-slate-400 text-xs text-left group-hover:opacity-80 transition-opacity">Online</p>
           </div>
         </div>
 
         {/* BUTTONS */}
         <div className="flex gap-4 items-center">
-          {/* LOGOUT BTN */}
-          <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
-            onClick={logout}
-          >
-            <LogOutIcon className="size-5" />
-          </button>
-
           {/* SOUND TOGGLE BTN */}
           <button
-            className="text-slate-400 hover:text-slate-200 transition-colors"
+            className="text-slate-400 hover:text-slate-200 transition-colors p-2 rounded-full hover:bg-slate-700/50"
             onClick={() => {
-              // play click sound before toggling
-              mouseClickSound.currentTime = 0; // reset to start
+              mouseClickSound.currentTime = 0; 
               mouseClickSound.play().catch((error) => console.log("Audio play failed:", error));
               toggleSound();
             }}
+            title="Toggle Sound"
           >
             {isSoundEnabled ? (
               <Volume2Icon className="size-5" />

@@ -109,20 +109,38 @@ export const logout = (req,res) => {
 
 export const updateProfile = async (req, res) => {
     try {
-        const {profilePic, fullName} = req.body; 
-        if (!profilePic && !fullName) return res.status(400).json({message: "Profile pic or name is required" })
+        const { profilePic, fullName, email, removeProfilePic } = req.body; 
+        
+        if (!profilePic && !fullName && !email && !removeProfilePic) {
+            return res.status(400).json({ message: "No data provided to update" });
+        }
 
         const userId = req.user._id; 
-
         let updateData = {};
 
-        if (profilePic) {
+        if (removeProfilePic) {
+            updateData.profilePic = ""; 
+        } else if (profilePic) {
             const uploadResponse = await cloudinary.uploader.upload(profilePic); 
             updateData.profilePic = uploadResponse.secure_url;
         }
 
         if (fullName && fullName.trim().length > 0) {
             updateData.fullName = fullName.trim();
+        }
+
+        if (email && email.trim().length > 0) {
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                return res.status(400).json({ message: "Invalid email format" });
+            }
+            if (email !== req.user.email) {
+                const existingUser = await User.findOne({ email });
+                if (existingUser && existingUser._id.toString() !== userId.toString()) {
+                    return res.status(400).json({ message: "Email already in use" });
+                }
+            }
+            updateData.email = email.trim();
         }
 
         const updatedUser = await User.findByIdAndUpdate(
