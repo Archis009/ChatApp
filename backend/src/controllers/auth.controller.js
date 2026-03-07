@@ -98,7 +98,7 @@ export const login = async (req,res) => {
 
     } catch (error) {
         console.error("Error in login controller:", error)
-        return res.status(500).json({ message: "Internal Server Error"})
+        return res.status(500).json({ message: "Internal Server Error", error: error.message, stack: error.stack })
     }
 }
 

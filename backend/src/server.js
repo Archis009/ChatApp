@@ -10,7 +10,7 @@ import { connectDB } from "./lib/db.js";
 
 // dotenv.config();
 
-const app = express();
+import { app, server } from "./lib/socket.js";
 const __dirname = path.resolve(); 
 
 const PORT = ENV.PORT || 3000;
@@ -59,7 +59,7 @@ if(ENV.NODE_ENV == "production"){
 export default app;
 
 if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
-    app.listen(PORT, ()=>{
+    server.listen(PORT, ()=>{
         console.log(`server is running on port ${PORT}`)
         connectDB();
     })
