@@ -151,7 +151,7 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("newMessage", (newMessage) => {
       const { selectedUser } = get();
-      const isMessageSentFromSelectedUser = selectedUser && newMessage.senderId === selectedUser._id;
+      const isMessageSentFromSelectedUser = selectedUser && String(newMessage.senderId) === String(selectedUser._id);
       
       if (isMessageSentFromSelectedUser) {
         const currentMessages = get().messages;
@@ -178,7 +178,7 @@ export const useChatStore = create((set, get) => ({
 
     socket.on("chatCleared", ({ clearedBy }) => {
       const { selectedUser } = get();
-      if (selectedUser && selectedUser._id === clearedBy) {
+      if (selectedUser && String(selectedUser._id) === String(clearedBy)) {
         set({ messages: [] });
       }
     });
@@ -186,7 +186,7 @@ export const useChatStore = create((set, get) => ({
     socket.on("blockStatusChanged", ({ byUserId, byUserName, isBlocked }) => {
       const { selectedUser } = get();
       // If we are currently chatting with the person who just blocked/unblocked us, update UI immediately
-      if (selectedUser && selectedUser._id === byUserId) {
+      if (selectedUser && String(selectedUser._id) === String(byUserId)) {
         set({ 
           selectedUser: { 
             ...selectedUser, 

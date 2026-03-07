@@ -1,4 +1,5 @@
 import { useChatStore } from "../store/useChatStore";
+import { useAuthStore } from "../store/useAuthStore";
 import { useEffect } from "react";
 import { X } from "lucide-react";
 
@@ -21,11 +22,13 @@ function ChatPage() {
     previewImage,
     setPreviewImage 
   } = useChatStore();
+  const { socket } = useAuthStore();
 
   useEffect(() => {
+    if (!socket) return;
     subscribeToMessages();
     return () => unsubscribeFromMessages();
-  }, [subscribeToMessages, unsubscribeFromMessages]);
+  }, [socket, subscribeToMessages, unsubscribeFromMessages]);
 
   return (
     <div className="relative w-full max-w-6xl h-[800px]">
