@@ -5,7 +5,7 @@ import NoChatsFound from "./NoChatsFound";
 import { useAuthStore } from "../store/useAuthStore";
 
 function ChatsList() {
-  const { getMyChatPartners, chats, isUsersLoading, setSelectedUser } = useChatStore();
+  const { getMyChatPartners, chats, isUsersLoading, setSelectedUser, setPreviewImage } = useChatStore();
   const { onlineUsers } = useAuthStore();
 
   useEffect(() => {
@@ -24,8 +24,15 @@ function ChatsList() {
           onClick={() => setSelectedUser(chat)}
         >
           <div className="flex items-center gap-3">
-            <div className={`avatar ${onlineUsers.includes(chat._id) ? "online" : "offline"}`}>
-              <div className="size-12 rounded-full">
+            <div 
+              className={`avatar ${onlineUsers.includes(chat._id) ? "online" : "offline"}`}
+              onClick={(e) => {
+                e.stopPropagation();
+                if (chat.profilePic) setPreviewImage(chat.profilePic);
+                else setPreviewImage("/avatar.png");
+              }}
+            >
+              <div className="size-12 rounded-full cursor-pointer hover:scale-105 transition-transform">
                 <img src={chat.profilePic || "/avatar.png"} alt={chat.fullName} />
               </div>
             </div>

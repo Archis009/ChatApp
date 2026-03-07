@@ -1,5 +1,6 @@
 import { useChatStore } from "../store/useChatStore";
 import { useEffect } from "react";
+import { X } from "lucide-react";
 
 import BorderAnimatedContainer from "../components/BorderAnimatedContainer";
 import ProfileHeader from "../components/ProfileHeader";
@@ -11,7 +12,15 @@ import NoConversationPlaceholder from "../components/NoConversationPlaceholder";
 import SettingsView from "../components/SettingsView";
 
 function ChatPage() {
-  const { activeTab, selectedUser, isSettingsOpen, subscribeToMessages, unsubscribeFromMessages } = useChatStore();
+  const { 
+    activeTab, 
+    selectedUser, 
+    isSettingsOpen, 
+    subscribeToMessages, 
+    unsubscribeFromMessages,
+    previewImage,
+    setPreviewImage 
+  } = useChatStore();
 
   useEffect(() => {
     subscribeToMessages();
@@ -42,6 +51,30 @@ function ChatPage() {
           </>
         )}
       </BorderAnimatedContainer>
+
+      {/* Global Image Preview Modal */}
+      {previewImage && (
+        <div 
+          className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 rounded-[2rem]"
+          onClick={() => setPreviewImage(null)}
+        >
+          <div className="relative max-w-4xl max-h-full w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button 
+              onClick={(e) => { e.stopPropagation(); setPreviewImage(null); }}
+              className="absolute top-6 right-6 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img 
+              src={previewImage} 
+              alt="Profile Full Size" 
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl ring-4 ring-slate-800"
+              onClick={(e) => e.stopPropagation()} 
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 }

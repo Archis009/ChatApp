@@ -12,7 +12,10 @@ export const useChatStore = create((set, get) => ({
   isUsersLoading: false,
   isMessagesLoading: false,
   isSettingsOpen: false,
+  previewImage: null,
   isSoundEnabled: JSON.parse(localStorage.getItem("isSoundEnabled")) === true,
+
+  setPreviewImage: (imageUrl) => set({ previewImage: imageUrl }),
 
   setIsSettingsOpen: (isOpen) => set({ isSettingsOpen: isOpen, selectedUser: isOpen ? null : get().selectedUser }),
 

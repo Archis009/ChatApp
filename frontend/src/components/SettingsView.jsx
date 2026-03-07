@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
-import { Camera, Mail, User, Trash2, LogOut, Loader2, ArrowLeft } from "lucide-react";
+import { Camera, Mail, User, Trash2, LogOut, Loader2, ArrowLeft, X } from "lucide-react";
 
 function SettingsView() {
   const { authUser, updateProfile, logout } = useAuthStore();
@@ -14,6 +14,7 @@ function SettingsView() {
   const [newEmail, setNewEmail] = useState(authUser?.email || "");
 
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false); // State for image preview
   const fileInputRef = useRef(null);
 
   const handleImageUpload = async (e) => {
@@ -81,8 +82,11 @@ function SettingsView() {
         <div className="space-y-10">
           {/* Profile Picture Section */}
           <div className="bg-slate-800/40 p-6 rounded-2xl border border-slate-700/50 flex flex-col items-center sm:flex-row sm:items-start gap-6 shadow-xl">
-            <div className="relative group flex-shrink-0">
-              <div className={`size-28 rounded-full overflow-hidden border-4 border-slate-700 mx-auto ${isUpdating ? "opacity-50" : ""}`}>
+            <div className="relative group flex-shrink-0 cursor-pointer">
+              <div 
+                className={`size-28 rounded-full overflow-hidden border-4 border-slate-700 mx-auto transition-transform hover:scale-105 ${isUpdating ? "opacity-50" : ""}`}
+                onClick={() => authUser?.profilePic ? setIsPreviewOpen(true) : null}
+              >
                 <img
                   src={authUser?.profilePic || "/avatar.png"}
                   alt="Profile"
@@ -90,7 +94,7 @@ function SettingsView() {
                 />
               </div>
               <button
-                onClick={() => fileInputRef.current?.click()}
+                onClick={(e) => { e.stopPropagation(); fileInputRef.current?.click(); }}
                 className="absolute bottom-1 right-1 p-2.5 rounded-full bg-cyan-600 hover:bg-cyan-500 text-white transition-colors shadow-lg"
                 disabled={isUpdating}
                 title="Change Photo"
@@ -260,6 +264,30 @@ function SettingsView() {
           </div>
         </div>
       </div>
+
+      {/* Image Preview Modal */}
+      {isPreviewOpen && authUser?.profilePic && (
+        <div 
+          className="absolute inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4"
+          onClick={() => setIsPreviewOpen(false)}
+        >
+          <div className="relative max-w-4xl max-h-full w-full h-full flex items-center justify-center">
+            {/* Close Button */}
+            <button 
+              onClick={(e) => { e.stopPropagation(); setIsPreviewOpen(false); }}
+              className="absolute top-6 right-6 p-2 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white transition-colors z-10"
+            >
+              <X className="w-6 h-6" />
+            </button>
+            <img 
+              src={authUser.profilePic} 
+              alt="Profile Full Size" 
+              className="max-w-full max-h-[90vh] object-contain rounded-2xl shadow-2xl ring-4 ring-slate-800"
+              onClick={(e) => e.stopPropagation()} // Prevent closing when clicking the image itself
+            />
+          </div>
+        </div>
+      )}
 
       {isUpdating && (
         <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 transition-all rounded-inherit">
