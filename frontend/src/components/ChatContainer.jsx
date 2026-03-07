@@ -83,7 +83,24 @@ function ChatContainer() {
         )}
       </div>
 
-      <MessageInput />
+      {selectedUser.isBlockedByThem ? (
+        <div className="p-5 bg-slate-800 border-t border-slate-700/50 flex flex-col items-center gap-1 text-center">
+          <p className="text-slate-300 font-medium">You are blocked by <span className="text-red-400">{selectedUser._blockedByName || selectedUser.fullName}</span>.</p>
+          <p className="text-slate-500 text-sm">Contact user to chat.</p>
+        </div>
+      ) : selectedUser.hasBlockedThem ? (
+        <div className="p-4 bg-slate-800 border-t border-slate-700/50 flex flex-col items-center gap-2">
+          <p className="text-slate-400">You have blocked this user.</p>
+          <button 
+            onClick={() => useChatStore.getState().blockUser(selectedUser._id)}
+            className="text-emerald-400 hover:text-emerald-300 font-medium text-sm transition-colors"
+          >
+            Unblock
+          </button>
+        </div>
+      ) : (
+        <MessageInput />
+      )}
     </>
   );
 }

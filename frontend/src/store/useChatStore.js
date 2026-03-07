@@ -110,6 +110,40 @@ export const useChatStore = create((set, get) => ({
     }
   },
 
+  blockUser: async (userId) => {
+    try {
+      const res = await axiosInstance.post(`/messages/block/${userId}`);
+      toast.success(res.data.message);
+
+      // Update selectedUser state in real-time if they are currently selected
+      const { selectedUser } = get();
+      if (selectedUser && selectedUser._id === userId) {
+        set({ selectedUser: { ...selectedUser, hasBlockedThem: res.data.blocked } });
+      }
+
+      // Re-fetch contacts and chats to update state
+      get().getAllContacts();
+      get().getMyChatPartners();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to block user");
+    }
+  },
+
+  deleteContact: async (userId) => {
+    try {
+      const res = await axiosInstance.post(`/messages/delete-contact/${userId}`);
+      toast.success(res.data.message);
+      // Remove the selected user if they are the one being deleted
+      if (get().selectedUser?._id === userId) {
+        set({ selectedUser: null });
+      }
+      get().getAllContacts();
+      get().getMyChatPartners();
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete contact");
+    }
+  },
+
   subscribeToMessages: () => {
     const { isSoundEnabled } = get();
 
@@ -146,6 +180,21 @@ export const useChatStore = create((set, get) => ({
       const { selectedUser } = get();
       if (selectedUser && selectedUser._id === clearedBy) {
         set({ messages: [] });
+      }
+    });
+
+    socket.on("blockStatusChanged", ({ byUserId, byUserName, isBlocked }) => {
+      const { selectedUser } = get();
+      // If we are currently chatting with the person who just blocked/unblocked us, update UI immediately
+      if (selectedUser && selectedUser._id === byUserId) {
+        set({ 
+          selectedUser: { 
+            ...selectedUser, 
+            isBlockedByThem: isBlocked,
+            // include the blocker's name for the message
+            _blockedByName: isBlocked ? byUserName : null
+          } 
+        });
       }
     });
   },

@@ -1,7 +1,7 @@
 import express from "express"; 
 import { protectRoute } from "../middleware/auth.middleware.js";
 import { arcjetProtection } from "../middleware/arcjet.middleware.js";
-import { clearChat, deleteMessage, getAllContacts, getChatPartners, getMessageByUserId, sendMessage } from "../controllers/message.controller.js";
+import { clearChat, deleteMessage, getAllContacts, getChatPartners, getMessageByUserId, sendMessage, blockUser, deleteContact } from "../controllers/message.controller.js";
 
 const router = express.Router(); 
 
@@ -13,5 +13,7 @@ router.get("/:id", getMessageByUserId); // get all messages between logged in us
 router.post("/send/:id", sendMessage);
 router.delete("/clear/:id", clearChat);
 router.delete("/:id", deleteMessage);
+router.post("/block/:id", blockUser);
+router.post("/delete-contact/:id", deleteContact);
 
 export default router;

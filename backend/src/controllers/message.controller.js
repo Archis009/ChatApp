@@ -5,10 +5,22 @@ import { getReceiverSocketId, io } from "../lib/socket.js";
 
 export const getAllContacts = async (req, res) => {
     try {
-        const loggedInUserId = req.user._id; //req.user came from protectRoute
-        const filteredUsers = await User.find({ _id: { $ne: loggedInUserId } }).select("-password"); 
+        const loggedInUser = await User.findById(req.user._id);
+        const deletedContacts = loggedInUser.deletedContacts || [];
+        const blockedUsers = loggedInUser.blockedUsers || [];
 
-        res.status(200).json(filteredUsers);
+        const filteredUsers = await User.find({ 
+            _id: { $ne: loggedInUser._id, $nin: deletedContacts } 
+        }).select("-password"); 
+
+        const usersWithBlockStatus = filteredUsers.map(user => {
+            const userObj = user.toObject();
+            userObj.hasBlockedThem = blockedUsers.some(id => id.toString() === user._id.toString());
+            userObj.isBlockedByThem = user.blockedUsers ? user.blockedUsers.some(id => id.toString() === loggedInUser._id.toString()) : false;
+            return userObj;
+        });
+
+        res.status(200).json(usersWithBlockStatus);
     } catch (error) {
         console.log("Error fetching contacts:", error);
         res.status(500).json({ message: "Server error" });
@@ -47,10 +59,21 @@ export const sendMessage = async (req, res) => {
             return res.status(400).json({ message: "Cannot send message to yourself." })
         }
 
-        const receiverExist = await User.exists({ _id: receiverId }); 
-        if (!receiverExist) {
-            return res.status(404).json({ message: "Reciever not found."})
+        const receiver = await User.findById(receiverId);
+        if (!receiver) {
+            return res.status(404).json({ message: "Reciever not found."});
         }
+
+        const sender = await User.findById(senderId);
+        if (sender.blockedUsers && sender.blockedUsers.includes(receiverId)) {
+            return res.status(403).json({ message: "You have blocked this user." });
+        }
+
+        if (receiver.blockedUsers && receiver.blockedUsers.includes(senderId)) {
+            return res.status(403).json({ message: "You are blocked by this user." });
+        }
+
+
 
         let imageUrl; 
         if (image){
@@ -84,7 +107,10 @@ export const sendMessage = async (req, res) => {
 
 export const getChatPartners = async (req, res) => {
     try {
+        const loggedInUser = await User.findById(req.user._id);
         const MyId = req.user._id; 
+        const deletedContacts = loggedInUser.deletedContacts || [];
+        const blockedUsers = loggedInUser.blockedUsers || [];
 
         const messages = await Message.find({
             $or: [
@@ -101,8 +127,19 @@ export const getChatPartners = async (req, res) => {
             )
         ]
 
-        const chatPartners = await User.find({_id: {$in: chatPartnerIds}}).select("-password"); 
-        res.status(200).json(chatPartners);
+        // Filter out deleted contacts
+        const validPartnerIds = chatPartnerIds.filter(id => !deletedContacts.includes(id));
+
+        const chatPartners = await User.find({_id: {$in: validPartnerIds}}).select("-password"); 
+
+        const partnersWithBlockStatus = chatPartners.map(user => {
+            const userObj = user.toObject();
+            userObj.hasBlockedThem = blockedUsers.some(id => id.toString() === user._id.toString());
+            userObj.isBlockedByThem = user.blockedUsers ? user.blockedUsers.some(id => id.toString() === loggedInUser._id.toString()) : false;
+            return userObj;
+        });
+
+        res.status(200).json(partnersWithBlockStatus);
 
     } catch (error) {
         console.log("Error fetching chat partners:", error);
@@ -158,6 +195,69 @@ export const deleteMessage = async (req, res) => {
         res.status(200).json({ message: "Message deleted successfully", messageId });
     } catch (error) {
         console.log("Error deleting message:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const deleteContact = async (req, res) => {
+    try {
+        const myId = req.user._id;
+        const targetUserId = req.params.id;
+
+        const user = await User.findById(myId);
+        if (!user.deletedContacts.includes(targetUserId)) {
+            user.deletedContacts.push(targetUserId);
+            await user.save();
+        }
+
+        res.status(200).json({ message: "Contact deleted successfully." });
+    } catch (error) {
+        console.log("Error deleting contact:", error);
+        res.status(500).json({ message: "Server error" });
+    }
+};
+
+export const blockUser = async (req, res) => {
+    try {
+        const myId = req.user._id;
+        const targetUserId = req.params.id;
+
+        const user = await User.findById(myId);
+        
+        // toggle block
+        if (user.blockedUsers.includes(targetUserId)) {
+            user.blockedUsers = user.blockedUsers.filter(id => id.toString() !== targetUserId.toString());
+            await user.save();
+
+            // Notify the unblocked user in real-time
+            const targetSocketId = getReceiverSocketId(targetUserId);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit("blockStatusChanged", {
+                    byUserId: myId,
+                    byUserName: user.fullName,
+                    isBlocked: false
+                });
+            }
+
+            res.status(200).json({ message: "User unblocked successfully.", blocked: false });
+        } else {
+            user.blockedUsers.push(targetUserId);
+            await user.save();
+
+            // Notify the blocked user in real-time
+            const targetSocketId = getReceiverSocketId(targetUserId);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit("blockStatusChanged", {
+                    byUserId: myId,
+                    byUserName: user.fullName,
+                    isBlocked: true
+                });
+            }
+
+            res.status(200).json({ message: "User blocked successfully.", blocked: true });
+        }
+    } catch (error) {
+        console.log("Error blocking user:", error);
         res.status(500).json({ message: "Server error" });
     }
 };

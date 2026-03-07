@@ -18,7 +18,15 @@ const userSchema = new mongoose.Schema({
     profilePic : {
         type: String, 
         default: ""
-    }
+    },
+    blockedUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }],
+    deletedContacts: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+    }]
 }, { timestamp: true } //createdAt and UpdatedAt- used to find last login and signup
 );
 
