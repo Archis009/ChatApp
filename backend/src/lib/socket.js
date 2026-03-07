@@ -7,9 +7,15 @@ import { socketAuthMiddleware } from "../middleware/socket.auth.middleware.js";
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigins = [
+  ENV.CLIENT_URL,
+  "http://localhost:5173",
+  "https://chat-app-lfa8.vercel.app",
+].filter(Boolean);
+
 const io = new Server(server, {
   cors: {
-    origin: [ENV.CLIENT_URL],
+    origin: allowedOrigins,
     credentials: true,
   },
 });
