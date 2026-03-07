@@ -85,17 +85,19 @@ export const useChatStore = create((set, get) => ({
   },
 
   subscribeToMessages: () => {
-    const { selectedUser, isSoundEnabled } = get();
-    if (!selectedUser) return;
+    const { isSoundEnabled } = get();
 
     const socket = useAuthStore.getState().socket;
+    if (!socket) return;
 
     socket.on("newMessage", (newMessage) => {
-      const isMessageSentFromSelectedUser = newMessage.senderId === selectedUser._id;
-      if (!isMessageSentFromSelectedUser) return;
-
-      const currentMessages = get().messages;
-      set({ messages: [...currentMessages, newMessage] });
+      const { selectedUser } = get();
+      const isMessageSentFromSelectedUser = selectedUser && newMessage.senderId === selectedUser._id;
+      
+      if (isMessageSentFromSelectedUser) {
+        const currentMessages = get().messages;
+        set({ messages: [...currentMessages, newMessage] });
+      }
 
       if (isSoundEnabled) {
         const notificationSound = new Audio("/sounds/notification.mp3");
@@ -103,6 +105,9 @@ export const useChatStore = create((set, get) => ({
         notificationSound.currentTime = 0; // reset to start
         notificationSound.play().catch((e) => console.log("Audio play failed:", e));
       }
+
+      // Refresh chat partners to update the sidebar
+      get().getMyChatPartners();
     });
   },
 
