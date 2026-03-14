@@ -1,11 +1,11 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../store/useAuthStore";
 import { useChatStore } from "../store/useChatStore";
 import ChatHeader from "./ChatHeader";
 import NoChatHistoryPlaceholder from "./NoChatHistoryPlaceholder";
 import MessageInput from "./MessageInput";
 import MessagesLoadingSkeleton from "./MessagesLoadingSkeleton";
-import { Trash2 } from "lucide-react";
+import { Trash2, X } from "lucide-react";
 
 function ChatContainer() {
   const {
@@ -18,6 +18,7 @@ function ChatContainer() {
   
   const { authUser } = useAuthStore();
   const messageEndRef = useRef(null);
+  const [fullscreenImage, setFullscreenImage] = useState(null);
 
   useEffect(() => {
     getMessagesByUserId(selectedUser._id);
@@ -28,6 +29,17 @@ function ChatContainer() {
       messageEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages]);
+
+  // Close fullscreen on Escape key
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setFullscreenImage(null);
+    };
+    if (fullscreenImage) {
+      document.addEventListener("keydown", handleKeyDown);
+    }
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [fullscreenImage]);
 
   return (
     <>
@@ -48,7 +60,12 @@ function ChatContainer() {
                   }`}
                 >
                   {msg.image && (
-                    <img src={msg.image} alt="Shared" className="rounded-lg h-48 object-cover" />
+                    <img
+                      src={msg.image}
+                      alt="Shared"
+                      className="rounded-lg h-48 object-cover cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setFullscreenImage(msg.image)}
+                    />
                   )}
                   {msg.text && <p className="mt-2">{msg.text}</p>}
                   
@@ -101,6 +118,44 @@ function ChatContainer() {
       ) : (
         <MessageInput />
       )}
+
+      {/* Fullscreen Image Lightbox */}
+      {fullscreenImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setFullscreenImage(null)}
+          style={{ animation: "fadeIn 0.2s ease-out" }}
+        >
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setFullscreenImage(null);
+            }}
+            className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            title="Close"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          <img
+            src={fullscreenImage}
+            alt="Full view"
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+            style={{ animation: "scaleIn 0.2s ease-out" }}
+          />
+        </div>
+      )}
+
+      <style>{`
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes scaleIn {
+          from { opacity: 0; transform: scale(0.9); }
+          to { opacity: 1; transform: scale(1); }
+        }
+      `}</style>
     </>
   );
 }
