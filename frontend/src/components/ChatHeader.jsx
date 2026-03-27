@@ -58,7 +58,7 @@ function ChatHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        {/* Dropdown Menu Container */}
+        {/* Dropdown Menu Container - Updated */}
         <div className="relative" ref={menuRef}>
           <button 
             onClick={() => setIsMenuOpen(!isMenuOpen)}
