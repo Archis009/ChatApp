@@ -47,6 +47,12 @@ app.get("/api/health", (req, res) => {
 app.use("/api/auth", authRoutes);
 app.use("/api/messages", messageRoutes);
 
+// Serve Vercel Speed Insights module
+app.use("/@vercel/speed-insights", express.static(path.join(__dirname, "../node_modules/@vercel/speed-insights")));
+
+// Serve public static files (including Speed Insights initialization script)
+app.use(express.static(path.join(__dirname, "../public")));
+
 // make ready for deployment 
 if(ENV.NODE_ENV == "production"){
     app.use(express.static(path.join(__dirname, "../frontend/dist")))
